@@ -1,0 +1,121 @@
+@import url('https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Geist+Mono:wght@400&display=swap');
+@import url('https://fonts.cdnfonts.com/css/bdo-grotesk');
+@import 'tailwindcss';
+
+@source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
+@source '../../storage/framework/views/*.php';
+@source '../views/**/*.blade.php';
+
+@theme {
+    --font-sans: 'Geist', ui-sans-serif, system-ui, sans-serif;
+    --font-display: 'BDO Grotesk', 'Geist', ui-sans-serif, system-ui, sans-serif;
+    --font-tab: 'Geist Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    --color-brand-50: #eff6ff;
+    --color-brand-100: #dbeafe;
+    --color-brand-200: #bfdbfe;
+    --color-brand-500: #3b82f6;
+    --color-brand-600: #2563eb;
+    --color-brand-700: #1d4ed8;
+    --color-brand-900: #1e3a8a;
+}
+
+.home-page h1,
+.home-page h2,
+.home-page h3 {
+    font-family: var(--font-display);
+    font-weight: 400;
+}
+
+.home-page .home-tabs {
+    font-family: var(--font-tab);
+}
+
+.impact-marquee-track {
+    animation: impact-marquee 70s linear infinite;
+    will-change: transform;
+}
+
+.impact-marquee:hover .impact-marquee-track {
+    animation-play-state: paused;
+}
+
+@keyframes impact-marquee {
+    from {
+        transform: translateX(0);
+    }
+
+    to {
+        transform: translateX(-50%);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .impact-marquee-track {
+        animation: none;
+    }
+}
+
+/* Nuxt-like Top Progress Loading Bar Styling */
+#nprogress {
+    pointer-events: none;
+}
+
+#nprogress .bar {
+    background: linear-gradient(90deg, #3b82f6, #6366f1, #ec4899, #8b5cf6);
+    position: fixed;
+    z-index: 99999;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 3.5px;
+    box-shadow: 0 0 10px rgba(99, 102, 241, 0.7);
+}
+
+#nprogress .peg {
+    display: block;
+    position: absolute;
+    right: 0px;
+    width: 100px;
+    height: 100%;
+    box-shadow: 0 0 10px #6366f1, 0 0 5px #3b82f6;
+    opacity: 1.0;
+    transform: rotate(3deg) translate(0px, -4px);
+}
+
+/* Glassmorphism effects */
+.glass-panel {
+    background: rgba(255, 255, 255, 0.85);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+}
+
+.glass-panel-dark {
+    background: rgba(15, 23, 42, 0.85);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+}
+
+/* Smooth custom scrollbars */
+::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
+
+::-webkit-scrollbar-track {
+    background: #f1f5f9;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 9999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #94a3b8;
+}
+
+/* Hide Alpine elements until ready */
+[x-cloak] {
+    display: none !important;
+}
