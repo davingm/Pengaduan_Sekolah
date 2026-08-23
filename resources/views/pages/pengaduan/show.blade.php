@@ -3,352 +3,475 @@
 @section('title', 'Status Pengaduan: ' . $complaint->ticket_code)
 
 @section('content')
-<div class="py-10 bg-black min-h-screen">
-    <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
-        
-        <!-- Breadcrumb & Back -->
-        <div class="flex items-center justify-between">
-            <a href="{{ route('home') }}" class="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-500 hover:text-blue-600 transition">
-                <i data-lucide="arrow-left" class="w-4 h-4"></i> Kembali ke Beranda
+@php
+    $activeStep = 1;
+    $isRejected = $complaint->status === 'ditolak';
+    $isProcessing = $complaint->status === 'diproses';
+    $isWaitingApproval = $complaint->status === 'menunggu_persetujuan';
+
+    if (!$isRejected) {
+        if (in_array($complaint->status, ['didisposisikan']))       $activeStep = 2;
+        if (in_array($complaint->status, ['diproses']))             $activeStep = 3;
+        if (in_array($complaint->status, ['menunggu_persetujuan'])) $activeStep = 4;
+        if ($complaint->status === 'selesai')                       $activeStep = 5;
+    } else {
+        $activeStep = 2;
+    }
+
+    $steps = [
+        ['num' => 1, 'label' => 'Terkirim',    'sub' => 'Pelapor'],
+        ['num' => 2, 'label' => 'Verifikasi',   'sub' => 'Piket'],
+        ['num' => 3, 'label' => 'Penanganan',   'sub' => 'Petugas'],
+        ['num' => 4, 'label' => 'Selesai',      'sub' => 'Kepsek'],
+    ];
+@endphp
+
+<div x-data="{ lightboxSrc: null }" class="min-h-screen bg-[#09090b]">
+
+    <!-- ═══════ Lightbox ═══════ -->
+    <div x-show="lightboxSrc"
+         x-transition:enter="transition ease-out duration-200"
+         x-transition:enter-start="opacity-0"
+         x-transition:enter-end="opacity-100"
+         x-transition:leave="transition ease-in duration-150"
+         x-transition:leave-start="opacity-100"
+         x-transition:leave-end="opacity-0"
+         @click="lightboxSrc = null"
+         @keydown.escape.window="lightboxSrc = null"
+         class="fixed inset-0 z-[100] bg-black/95 backdrop-blur-md flex items-center justify-center p-4 sm:p-8 cursor-pointer"
+         x-cloak>
+        <img :src="lightboxSrc"
+             class="max-w-full max-h-[88vh] object-contain rounded-lg select-none cursor-default"
+             @click.stop>
+        <button @click="lightboxSrc = null"
+                class="absolute top-4 right-4 sm:top-6 sm:right-6 w-10 h-10 flex items-center justify-center rounded-full bg-white/10 hover:bg-white/20 text-white/60 hover:text-white transition-colors">
+            <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+    </div>
+
+    <!-- ═══════ Main Container ═══════ -->
+    <div class="max-w-3xl mx-auto px-5 sm:px-8 lg:px-10 py-8 lg:py-16">
+
+        <!-- ─── Nav Bar ─── -->
+        <nav class="flex items-center justify-between pb-5 border-b border-white/[0.06]">
+            <a href="{{ route('home') }}"
+               class="group inline-flex items-center gap-2 text-[14px] text-neutral-500 hover:text-white transition-colors duration-200">
+                <i data-lucide="arrow-left" class="w-[18px] h-[18px] transition-transform duration-200 group-hover:-translate-x-0.5"></i>
+                Kembali
             </a>
-
-            @if(Auth::check() && (Auth::user()->isStaff() || Auth::id() === $complaint->user_id))
-                <a href="{{ route('dashboard.pengaduan.show', $complaint->ticket_code) }}" class="inline-flex items-center gap-1.5 bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 px-3.5 py-1.5 rounded-xl text-xs font-bold transition">
-                    <i data-lucide="layout-dashboard" class="w-3.5 h-3.5 text-blue-500"></i> Buka di Dashboard Internal &rarr;
-                </a>
-            @endif
-        </div>
-
-        <!-- Ticket Hero Card -->
-        <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 sm:p-8 shadow-xl space-y-6">
-            
-            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-slate-100 dark:border-slate-800">
-                <div class="space-y-1">
-                    <div class="flex flex-wrap items-center gap-2">
-                        <span class="font-mono text-sm font-bold bg-blue-50 dark:bg-blue-950/60 text-blue-600 dark:text-blue-400 px-3 py-1 rounded-xl border border-blue-200 dark:border-blue-800">
-                            {{ $complaint->ticket_code }}
-                        </span>
-                        <x-status-badge :status="$complaint->status" />
-                        <x-priority-badge :priority="$complaint->priority" />
-                    </div>
-                    <h1 class="text-xl sm:text-2xl font-black text-slate-900 dark:text-white pt-1">
-                        {{ $complaint->title }}
-                    </h1>
-                </div>
-
-                <div class="text-left sm:text-right shrink-0 text-xs text-slate-500">
-                    <div>Waktu Dibuat:</div>
-                    <div class="font-semibold text-slate-700 dark:text-slate-300">{{ $complaint->created_at->format('d M Y, H:i') }} WIB</div>
-                </div>
+            <div class="flex items-center gap-3">
+                @if(Auth::check() && (Auth::user()->isStaff() || Auth::id() === $complaint->user_id))
+                    <a href="{{ route('dashboard.pengaduan.show', $complaint->ticket_code) }}"
+                       class="hidden sm:inline-flex items-center gap-1.5 text-[13px] text-neutral-600 hover:text-white transition-colors duration-200">
+                        Dashboard
+                        <i data-lucide="arrow-up-right" class="w-3.5 h-3.5"></i>
+                    </a>
+                @endif
+                <code class="text-[12px] sm:text-[13px] font-mono text-neutral-600 bg-white/[0.04] px-2.5 py-1 rounded-lg border border-white/[0.06] select-all">{{ $complaint->ticket_code }}</code>
             </div>
+        </nav>
 
-            <!-- Workflow Progress Stepper (Visual 4-Steps Nuxt-style bar) -->
-            <div class="py-2">
-                <div class="grid grid-cols-4 gap-2 sm:gap-4 relative text-center">
-                    
-                    <!-- Step 1: Laporan Dibuat -->
-                    <div class="flex flex-col items-center space-y-2">
-                        <div class="w-9 h-9 rounded-2xl flex items-center justify-center text-xs font-bold transition shadow-sm bg-blue-600 text-white shadow-blue-500/20">
-                            <i data-lucide="check" class="w-4 h-4"></i>
-                        </div>
-                        <div class="text-[11px] font-bold text-slate-800 dark:text-slate-200">1. Terkirim</div>
-                        <span class="text-[10px] text-slate-400 hidden sm:block">Siswa / Pelapor</span>
-                    </div>
-
-                    <!-- Step 2: Verifikasi & Disposisi -->
-                    @php $isStep2 = in_array($complaint->status, ['didisposisikan', 'diproses', 'menunggu_persetujuan', 'selesai']); @endphp
-                    <div class="flex flex-col items-center space-y-2">
-                        <div class="w-9 h-9 rounded-2xl flex items-center justify-center text-xs font-bold transition shadow-sm {{ $isStep2 ? 'bg-indigo-600 text-white shadow-indigo-500/20' : ($complaint->status === 'ditolak' ? 'bg-rose-600 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-400') }}">
-                            @if($isStep2) <i data-lucide="check" class="w-4 h-4"></i>
-                            @elseif($complaint->status === 'ditolak') <i data-lucide="x" class="w-4 h-4"></i>
-                            @else 2 @endif
-                        </div>
-                        <div class="text-[11px] font-bold {{ $isStep2 ? 'text-slate-800 dark:text-slate-200' : 'text-slate-400' }}">2. Verifikasi Piket</div>
-                        <span class="text-[10px] text-slate-400 hidden sm:block">Validasi & Disposisi</span>
-                    </div>
-
-                    <!-- Step 3: Tindak Lanjut Petugas -->
-                    @php $isStep3 = in_array($complaint->status, ['diproses', 'menunggu_persetujuan', 'selesai']); @endphp
-                    <div class="flex flex-col items-center space-y-2">
-                        <div class="w-9 h-9 rounded-2xl flex items-center justify-center text-xs font-bold transition shadow-sm {{ $isStep3 ? 'bg-sky-600 text-white shadow-sky-500/20' : 'bg-slate-100 dark:bg-slate-800 text-slate-400' }}">
-                            @if(in_array($complaint->status, ['menunggu_persetujuan', 'selesai'])) <i data-lucide="check" class="w-4 h-4"></i>
-                            @elseif($complaint->status === 'diproses') <i data-lucide="loader" class="w-4 h-4 animate-spin"></i>
-                            @else 3 @endif
-                        </div>
-                        <div class="text-[11px] font-bold {{ $isStep3 ? 'text-slate-800 dark:text-slate-200' : 'text-slate-400' }}">3. Penanganan</div>
-                        <span class="text-[10px] text-slate-400 hidden sm:block">Petugas Terkait</span>
-                    </div>
-
-                    <!-- Step 4: Selesai & Pengesahan Kepsek -->
-                    @php $isStep4 = $complaint->status === 'selesai'; @endphp
-                    <div class="flex flex-col items-center space-y-2">
-                        <div class="w-9 h-9 rounded-2xl flex items-center justify-center text-xs font-bold transition shadow-sm {{ $isStep4 ? 'bg-emerald-600 text-white shadow-emerald-500/20' : 'bg-slate-100 dark:bg-slate-800 text-slate-400' }}">
-                            @if($isStep4) <i data-lucide="check" class="w-4 h-4"></i>
-                            @else 4 @endif
-                        </div>
-                        <div class="text-[11px] font-bold {{ $isStep4 ? 'text-slate-800 dark:text-slate-200' : 'text-slate-400' }}">4. Selesai</div>
-                        <span class="text-[10px] text-slate-400 hidden sm:block">Persetujuan Kepsek</span>
-                    </div>
-
-                </div>
+        <!-- ─── Title Hero ─── -->
+        <header class="pt-10 pb-2">
+            <div class="flex flex-wrap items-center gap-2 mb-5">
+                <x-status-badge :status="$complaint->status" />
+                <x-priority-badge :priority="$complaint->priority" />
             </div>
+            <h1 class="text-[26px] sm:text-[32px] lg:text-[38px] font-bold text-white tracking-[-0.02em] leading-[1.15]">
+                {{ $complaint->title }}
+            </h1>
+            <p class="mt-3.5 text-[15px] text-neutral-500 leading-relaxed">
+                {{ $complaint->created_at->format('d F Y · H.i') }} WIB
+                @if(!$complaint->is_anonymous)
+                    — {{ $complaint->reporter_name }}{{ $complaint->reporter_class ? ' · ' . $complaint->reporter_class : '' }}
+                @else
+                    — Dilaporkan anonim
+                @endif
+            </p>
+        </header>
 
-            <!-- Rejection Alert if Status Ditolak -->
-            @if($complaint->status === 'ditolak')
-                <div class="p-5 rounded-2xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800/60 text-xs text-rose-900 dark:text-rose-200 space-y-1">
-                    <div class="font-bold flex items-center gap-1.5 text-rose-700 dark:text-rose-300">
-                        <i data-lucide="alert-circle" class="w-4 h-4"></i> Laporan Pengaduan Tidak Valid / Ditolak & Diarsipkan
-                    </div>
-                    <p class="leading-relaxed">{{ $complaint->rejection_reason }}</p>
-                </div>
-            @endif
+        <!-- ─── Stepper ─── -->
+        <section class="py-10 border-y border-white/[0.06]">
+            <div class="flex items-start">
+                @foreach($steps as $i => $step)
+                    @php
+                        $num = $step['num'];
+                        if ($isRejected && $num === 2) {
+                            $state = 'rejected';
+                        } elseif ($activeStep > $num) {
+                            $state = 'completed';
+                        } elseif ($activeStep === $num) {
+                            $state = 'active';
+                        } else {
+                            $state = 'pending';
+                        }
+                    @endphp
 
-            <!-- Details Information Grid -->
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4 text-xs">
-                <div class="space-y-3 bg-slate-50 dark:bg-slate-800/50 p-4 rounded-2xl border border-slate-100 dark:border-slate-800">
-                    <div class="flex justify-between">
-                        <span class="text-slate-500">Kategori:</span>
-                        <span class="font-bold text-slate-800 dark:text-slate-200">{{ $complaint->category->name }}</span>
-                    </div>
-                    <div class="flex justify-between">
-                        <span class="text-slate-500">Lokasi / Ruangan:</span>
-                        <span class="font-bold text-slate-800 dark:text-slate-200">{{ $complaint->location ?? 'Tidak disebutkan' }}</span>
-                    </div>
-                    <div class="flex justify-between">
-                        <span class="text-slate-500">Pelapor:</span>
-                        <span class="font-bold text-slate-800 dark:text-slate-200">
-                            @if($complaint->is_anonymous)
-                                <span class="text-amber-600 dark:text-amber-400 font-mono">Pelapor Anonim (Dirahasiakan)</span>
+                    <!-- Step Node -->
+                    <div class="flex flex-col items-center shrink-0">
+                        <div class="relative">
+                            @if($state === 'completed')
+                                <div class="w-10 h-10 rounded-full bg-white text-[#09090b] flex items-center justify-center shadow-sm shadow-white/10">
+                                    <i data-lucide="check" class="w-[18px] h-[18px]" stroke-width="2.5"></i>
+                                </div>
+                            @elseif($state === 'active')
+                                <div class="w-10 h-10 rounded-full border-2 border-white bg-[#09090b] flex items-center justify-center step-pulse">
+                                    @if($isProcessing && $num === 3)
+                                        <i data-lucide="loader" class="w-[18px] h-[18px] text-white animate-spin"></i>
+                                    @else
+                                        <div class="w-3 h-3 rounded-full bg-white"></div>
+                                    @endif
+                                </div>
+                            @elseif($state === 'rejected')
+                                <div class="w-10 h-10 rounded-full bg-white text-[#09090b] flex items-center justify-center">
+                                    <i data-lucide="x" class="w-[18px] h-[18px]" stroke-width="2.5"></i>
+                                </div>
                             @else
-                                {{ $complaint->reporter_name }} ({{ $complaint->reporter_class ?? 'Siswa' }})
+                                <div class="w-10 h-10 rounded-full border-[1.5px] border-white/10 bg-[#09090b] flex items-center justify-center">
+                                    <span class="text-[13px] font-semibold text-neutral-700">{{ $num }}</span>
+                                </div>
                             @endif
+                        </div>
+                        <span class="mt-3 text-[13px] font-medium {{ $state === 'pending' ? 'text-neutral-700' : 'text-white' }} whitespace-nowrap">
+                            {{ $step['label'] }}
                         </span>
+                        <span class="mt-0.5 text-[11px] text-neutral-700 hidden sm:block">{{ $step['sub'] }}</span>
                     </div>
-                </div>
 
-                <div class="space-y-3 bg-slate-50 dark:bg-slate-800/50 p-4 rounded-2xl border border-slate-100 dark:border-slate-800">
-                    <div class="flex justify-between">
-                        <span class="text-slate-500">Guru Verifikator:</span>
-                        <span class="font-bold text-slate-800 dark:text-slate-200">{{ $complaint->assignedByGuru->name ?? 'Menunggu Verifikasi Piket' }}</span>
-                    </div>
-                    <div class="flex justify-between">
-                        <span class="text-slate-500">Petugas Penanganan:</span>
-                        <span class="font-bold text-slate-800 dark:text-slate-200">{{ $complaint->assignedOfficer->name ?? 'Belum Didisposisikan' }}</span>
-                    </div>
-                    <div class="flex justify-between">
-                        <span class="text-slate-500">Terakhir Diperbarui:</span>
-                        <span class="font-bold text-slate-800 dark:text-slate-200">{{ $complaint->updated_at->diffForHumans() }}</span>
-                    </div>
-                </div>
+                    <!-- Connecting Line -->
+                    @if($i < 3)
+                        @php
+                            $nextNum = $steps[$i + 1]['num'];
+                            if ($isRejected && $nextNum === 2) {
+                                $lineActive = false;
+                            } elseif ($activeStep > $nextNum) {
+                                $lineActive = true;
+                            } elseif ($activeStep === $nextNum) {
+                                $lineActive = true;
+                            } else {
+                                $lineActive = false;
+                            }
+                        @endphp
+                        <div class="flex-1 flex items-center" style="height:40px;">
+                            <div class="w-full h-px transition-colors duration-500 {{ $lineActive ? 'bg-white' : 'bg-white/[0.06]' }}"></div>
+                        </div>
+                    @endif
+                @endforeach
             </div>
+        </section>
 
-            <!-- Description -->
-            <div class="space-y-2 pt-2">
-                <h3 class="text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider">Uraian / Deskripsi Laporan:</h3>
-                <div class="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-100 dark:border-slate-800 text-xs text-slate-800 dark:text-slate-200 leading-relaxed whitespace-pre-line">
-                    {{ $complaint->description }}
+        <!-- ─── Rejection Alert ─── -->
+        @if($isRejected)
+            <div class="mt-8 p-5 sm:p-6 rounded-2xl bg-white/[0.04] border border-white/[0.08] space-y-2.5">
+                <div class="flex items-center gap-2.5 text-[15px] font-semibold text-white">
+                    <i data-lucide="octagon-x" class="w-[18px] h-[18px] text-neutral-400"></i>
+                    Pengaduan Ditolak & Diarsipkan
                 </div>
+                <p class="text-[14px] text-neutral-500 leading-[1.7]">{{ $complaint->rejection_reason }}</p>
             </div>
+        @endif
 
-            <!-- Evidence Attachments (Foto Bukti Awal) -->
-            @if($complaint->evidenceAttachments->isNotEmpty())
-                <div class="space-y-2 pt-2">
-                    <h3 class="text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider">Foto / Dokumen Bukti Awal:</h3>
-                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                        @foreach($complaint->evidenceAttachments as $att)
-                            <a href="{{ asset('storage/' . $att->file_path) }}" target="_blank" class="block group relative rounded-2xl overflow-hidden border border-slate-200 dark:border-slate-700 bg-slate-100 dark:bg-slate-800">
-                                @if(Str::startsWith($att->file_type, 'image/'))
-                                    <img src="{{ asset('storage/' . $att->file_path) }}" alt="{{ $att->file_name }}" class="w-full h-28 object-cover group-hover:scale-105 transition">
-                                @else
-                                    <div class="h-28 flex flex-col items-center justify-center p-2 text-center text-slate-500">
-                                        <i data-lucide="file-text" class="w-8 h-8 mb-1 text-blue-500"></i>
-                                        <span class="text-[10px] truncate max-w-full font-medium">{{ $att->file_name }}</span>
+        <!-- ─── Detail Info ─── -->
+        <section class="mt-10">
+            <h2 class="text-[12px] font-semibold text-neutral-600 uppercase tracking-[0.08em] mb-5">Detail Pengaduan</h2>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-x-10">
+                @php
+                    $details = [
+                        ['Kategori' => $complaint->category->name],
+                        ['Lokasi' => $complaint->location ?? '—'],
+                        ['Pelapor' => $complaint->is_anonymous ? 'Anonim' : $complaint->reporter_name . ($complaint->reporter_class ? ' ('.$complaint->reporter_class.')' : '')],
+                        ['Verifikator' => $complaint->assignedByGuru->name ?? 'Menunggu'],
+                        ['Petugas' => $complaint->assignedOfficer->name ?? 'Belum ditugaskan'],
+                        ['Diperbarui' => $complaint->updated_at->diffForHumans()],
+                    ];
+                @endphp
+                @foreach($details as $detail)
+                    @foreach($detail as $key => $val)
+                        <div class="flex justify-between items-baseline py-3.5 border-b border-white/[0.04] text-[14px]">
+                            <span class="text-neutral-600 shrink-0 mr-4">{{ $key }}</span>
+                            <span class="text-neutral-200 font-medium text-right">{{ $val }}</span>
+                        </div>
+                    @endforeach
+                @endforeach
+            </div>
+        </section>
+
+        <!-- ─── Description ─── -->
+        <section class="mt-10">
+            <h2 class="text-[12px] font-semibold text-neutral-600 uppercase tracking-[0.08em] mb-4">Uraian Laporan</h2>
+            <div class="text-[15px] text-neutral-400 leading-[1.8] whitespace-pre-line pl-px">{{ $complaint->description }}</div>
+        </section>
+
+        <!-- ─── Evidence Photos + Camera ─── -->
+        @if($complaint->evidenceAttachments->isNotEmpty() || true)
+            <section class="mt-12">
+                <div class="flex items-center justify-between mb-5">
+                    <h2 class="text-[12px] font-semibold text-neutral-600 uppercase tracking-[0.08em] flex items-center gap-2">
+                        <i data-lucide="image" class="w-3.5 h-3.5"></i>
+                        Bukti Foto
+                    </h2>
+                    @if($complaint->evidenceAttachments->isNotEmpty())
+                        <span class="text-[12px] text-neutral-700 font-mono">{{ $complaint->evidenceAttachments->count() }}</span>
+                    @endif
+                </div>
+
+                <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                    @foreach($complaint->evidenceAttachments as $att)
+                        @if(Str::startsWith($att->file_type, 'image/'))
+                            <button @click="lightboxSrc = '{{ asset('storage/' . $att->file_path) }}'"
+                                    class="group relative aspect-[4/3] rounded-2xl overflow-hidden bg-white/[0.04] border border-white/[0.06] cursor-zoom-in focus:outline-none focus-visible:ring-2 focus-visible:ring-white/30 focus-visible:ring-offset-2 focus-visible:ring-offset-[#09090b]">
+                                <img src="{{ asset('storage/' . $att->file_path) }}"
+                                     alt="{{ $att->file_name }}"
+                                     class="w-full h-full object-cover transition-transform duration-500 ease-out group-hover:scale-[1.04]"
+                                     loading="lazy">
+                                <div class="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                                    <div class="absolute bottom-3 left-3 right-3 flex items-center justify-between">
+                                        <i data-lucide="maximize-2" class="w-4 h-4 text-white/70"></i>
+                                        <i data-lucide="camera" class="w-4 h-4 text-white/40"></i>
                                     </div>
-                                @endif
-                                <div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition flex items-center justify-center text-white text-xs font-semibold">
-                                    Lihat Berkas
                                 </div>
-                            </a>
-                        @endforeach
-                    </div>
-                </div>
-            @endif
-
-            <!-- Resolution Notes & Evidence (Hasil Penanganan Petugas & Approval Kepsek) -->
-            @if($complaint->resolution_notes || $complaint->resolutionAttachments->isNotEmpty() || $complaint->approval_notes)
-                <div class="mt-6 p-6 rounded-3xl bg-emerald-50/70 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800/60 space-y-4">
-                    <div class="flex items-center gap-2 text-emerald-800 dark:text-emerald-300 font-bold text-sm">
-                        <i data-lucide="check-check" class="w-5 h-5"></i>
-                        <span>Laporan Tindak Lanjut & Bukti Penyelesaian</span>
-                    </div>
-
-                    @if($complaint->resolution_notes)
-                        <div class="text-xs text-slate-800 dark:text-slate-200 leading-relaxed whitespace-pre-line bg-white/70 dark:bg-slate-900/70 p-4 rounded-2xl border border-emerald-100 dark:border-emerald-900">
-                            <span class="font-bold block text-emerald-700 dark:text-emerald-400 mb-1">Catatan Tindakan Petugas:</span>
-                            {{ $complaint->resolution_notes }}
-                        </div>
-                    @endif
-
-                    @if($complaint->approval_notes)
-                        <div class="text-xs text-slate-800 dark:text-slate-200 leading-relaxed whitespace-pre-line bg-white/70 dark:bg-slate-900/70 p-4 rounded-2xl border border-emerald-100 dark:border-emerald-900">
-                            <span class="font-bold block text-purple-700 dark:text-purple-400 mb-1">Catatan Pengesahan Kepala Sekolah:</span>
-                            {{ $complaint->approval_notes }}
-                        </div>
-                    @endif
-
-                    @if($complaint->resolutionAttachments->isNotEmpty())
-                        <div class="space-y-1.5">
-                            <div class="text-[11px] font-bold text-emerald-800 dark:text-emerald-300 uppercase">Foto Bukti Setelah Penanganan Selesai:</div>
-                            <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                                @foreach($complaint->resolutionAttachments as $att)
-                                    <a href="{{ asset('storage/' . $att->file_path) }}" target="_blank" class="block group relative rounded-2xl overflow-hidden border border-emerald-200 dark:border-emerald-800 bg-white">
-                                        <img src="{{ asset('storage/' . $att->file_path) }}" alt="{{ $att->file_name }}" class="w-full h-28 object-cover group-hover:scale-105 transition">
-                                        <div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition flex items-center justify-center text-white text-xs font-semibold">
-                                            Bukti Tuntas
-                                        </div>
-                                    </a>
-                                @endforeach
-                            </div>
-                        </div>
-                    @endif
-                </div>
-            @endif
-
-            <!-- Satisfaction Rating & Feedback Card (When Status Selesai) -->
-            @if($complaint->status === 'selesai')
-                <div class="p-6 rounded-3xl bg-amber-50/80 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800/60 space-y-4"
-                     x-data="{ rating: {{ $complaint->satisfaction_rating ?? 5 }} }">
-                    
-                    <div class="flex items-center justify-between">
-                        <div class="flex items-center gap-2 text-amber-800 dark:text-amber-300 font-bold text-sm">
-                            <i data-lucide="star" class="w-5 h-5 text-amber-500 fill-amber-500"></i>
-                            <span>Penilaian Kepuasan Siswa / Pelapor</span>
-                        </div>
-                        @if($complaint->satisfaction_rating)
-                            <span class="text-xs font-bold text-amber-700 dark:text-amber-400 bg-amber-100 dark:bg-amber-900/60 px-3 py-1 rounded-full">
-                                Nilai: {{ $complaint->satisfaction_rating }} / 5 Bintang
-                            </span>
-                        @endif
-                    </div>
-
-                    @if($complaint->satisfaction_rating)
-                        <div class="text-xs text-slate-700 dark:text-slate-300 italic bg-white/70 dark:bg-slate-900/70 p-4 rounded-2xl border border-amber-100 dark:border-amber-900">
-                            "{{ $complaint->satisfaction_feedback ?? 'Pelapor puas dengan kecepatan penanganan.' }}"
-                            <div class="text-[10px] text-slate-400 mt-1 not-italic font-sans">
-                                Dinilai pada {{ $complaint->feedback_submitted_at?->format('d M Y, H:i') }} WIB
-                            </div>
-                        </div>
-                    @else
-                        <!-- Form Submit Rating -->
-                        <form action="{{ route('pengaduan.rate', $complaint->ticket_code) }}" method="POST" class="space-y-4">
-                            @csrf
-                            <div>
-                                <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-2">
-                                    Seberapa puas Anda dengan hasil penanganan masalah ini?
-                                </label>
-                                <div class="flex items-center gap-2">
-                                    <template x-for="star in [1, 2, 3, 4, 5]" :key="star">
-                                        <button type="button" 
-                                                @click="rating = star" 
-                                                class="p-2 rounded-xl border transition"
-                                                :class="rating >= star ? 'bg-amber-400 text-slate-950 border-amber-400' : 'bg-slate-100 dark:bg-slate-800 text-slate-400 border-slate-200 dark:border-slate-700'">
-                                            <i data-lucide="star" class="w-5 h-5" :class="rating >= star ? 'fill-current' : ''"></i>
-                                        </button>
-                                    </template>
-                                    <input type="hidden" name="satisfaction_rating" :value="rating">
-                                    <span class="text-xs font-bold text-amber-700 dark:text-amber-400 ml-2" x-text="rating + ' / 5 Bintang'"></span>
-                                </div>
-                            </div>
-
-                            <div>
-                                <textarea name="satisfaction_feedback" rows="2" placeholder="Tuliskan ulasan singkat atau terima kasih untuk petugas..." class="w-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl p-3 text-xs text-slate-900 dark:text-white focus:ring-2 focus:ring-amber-500 focus:outline-none"></textarea>
-                            </div>
-
-                            <button type="submit" class="bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold px-5 py-2.5 rounded-xl text-xs transition">
-                                Kirimkan Ulasan Kepuasan
                             </button>
-                        </form>
+                        @else
+                            <a href="{{ asset('storage/' . $att->file_path) }}" target="_blank"
+                               class="group flex flex-col items-center justify-center aspect-[4/3] rounded-2xl bg-white/[0.02] border border-white/[0.06] hover:border-white/[0.12] transition-colors duration-200">
+                                <i data-lucide="file-text" class="w-7 h-7 text-neutral-700 group-hover:text-neutral-500 transition-colors mb-2"></i>
+                                <span class="text-[11px] text-neutral-600 font-medium px-3 text-center truncate max-w-full">{{ $att->file_name }}</span>
+                            </a>
+                        @endif
+                    @endforeach
+
+                    <!-- Camera Capture Button -->
+                    <label class="group flex flex-col items-center justify-center aspect-[4/3] rounded-2xl border-2 border-dashed border-white/[0.08] hover:border-white/[0.2] bg-white/[0.02] hover:bg-white/[0.04] cursor-pointer transition-all duration-200">
+                        <input type="file" accept="image/*" capture="environment" multiple class="hidden"
+                               onchange="if(this.files.length){ const fd=new FormData(); Array.from(this.files).forEach((f,i)=>fd.append('evidence[]',f)); fetch(window.location.href,{method:'POST',headers:{'X-CSRF-TOKEN':document.querySelector('meta[name=csrf-token]').content},body:fd}).then(r=>r.ok?window.location.reload():null); }">
+                        <div class="w-10 h-10 rounded-xl bg-white/[0.04] border border-white/[0.08] group-hover:border-white/[0.15] group-hover:bg-white/[0.06] flex items-center justify-center transition-all duration-200 group-hover:-translate-y-0.5">
+                            <i data-lucide="camera" class="w-5 h-5 text-neutral-600 group-hover:text-neutral-300 transition-colors"></i>
+                        </div>
+                        <span class="mt-2.5 text-[11px] font-medium text-neutral-700 group-hover:text-neutral-400 transition-colors">Ambil Foto</span>
+                    </label>
+                </div>
+            </section>
+        @endif
+
+        <!-- ─── Resolution ─── -->
+        @if($complaint->resolution_notes || $complaint->resolutionAttachments->isNotEmpty() || $complaint->approval_notes)
+            <section class="mt-12 pl-5 border-l-2 border-white/80 space-y-5">
+                <div class="flex items-center gap-2.5">
+                    <i data-lucide="check-check" class="w-[18px] h-[18px] text-white"></i>
+                    <h2 class="text-[15px] font-semibold text-white">Tindak Lanjut & Penyelesaian</h2>
+                </div>
+
+                @if($complaint->resolution_notes)
+                    <div class="text-[14px] text-neutral-400 leading-[1.75] whitespace-pre-line pl-7">
+                        <span class="block text-[12px] font-semibold text-neutral-600 uppercase tracking-[0.06em] mb-2">Catatan Petugas</span>
+                        {{ $complaint->resolution_notes }}
+                    </div>
+                @endif
+
+                @if($complaint->approval_notes)
+                    <div class="text-[14px] text-neutral-400 leading-[1.75] whitespace-pre-line pl-7">
+                        <span class="block text-[12px] font-semibold text-neutral-600 uppercase tracking-[0.06em] mb-2">Catatan Kepala Sekolah</span>
+                        {{ $complaint->approval_notes }}
+                    </div>
+                @endif
+
+                @if($complaint->resolutionAttachments->isNotEmpty())
+                    <div class="pl-7 space-y-3">
+                        <span class="block text-[12px] font-semibold text-neutral-600 uppercase tracking-[0.06em]">Bukti Setelah Penanganan</span>
+                        <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                            @foreach($complaint->resolutionAttachments as $att)
+                                @if(Str::startsWith($att->file_type, 'image/'))
+                                    <button @click="lightboxSrc = '{{ asset('storage/' . $att->file_path) }}'"
+                                            class="group relative aspect-[4/3] rounded-2xl overflow-hidden bg-white/[0.04] border border-white/[0.06] cursor-zoom-in focus:outline-none focus-visible:ring-2 focus-visible:ring-white/30 focus-visible:ring-offset-2 focus-visible:ring-offset-[#09090b]">
+                                        <img src="{{ asset('storage/' . $att->file_path) }}"
+                                             alt="{{ $att->file_name }}"
+                                             class="w-full h-full object-cover transition-transform duration-500 ease-out group-hover:scale-[1.04]"
+                                             loading="lazy">
+                                        <div class="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                                            <div class="absolute bottom-3 left-3">
+                                                <i data-lucide="maximize-2" class="w-4 h-4 text-white/70"></i>
+                                            </div>
+                                        </div>
+                                    </button>
+                                @endif
+                            @endforeach
+                        </div>
+                    </div>
+                @endif
+            </section>
+        @endif
+
+        <!-- ─── Satisfaction Rating ─── -->
+        @if($complaint->status === 'selesai')
+            <section class="mt-12 p-6 sm:p-8 rounded-2xl bg-white/[0.03] border border-white/[0.06] space-y-5"
+                     x-data="{ rating: {{ $complaint->satisfaction_rating ?? 0 }}, hover: 0, submitted: {{ $complaint->satisfaction_rating ? 'true' : 'false' }} }">
+
+                <div class="flex items-center justify-between">
+                    <h2 class="text-[15px] font-semibold text-white flex items-center gap-2">
+                        <i data-lucide="star" class="w-[18px] h-[18px] text-neutral-400"></i>
+                        Penilaian Kepuasan
+                    </h2>
+                    @if($complaint->satisfaction_rating)
+                        <span class="text-[12px] font-mono font-semibold text-neutral-500 bg-white/[0.04] px-3 py-1 rounded-lg border border-white/[0.06]">
+                            {{ $complaint->satisfaction_rating }}/5
+                        </span>
                     @endif
                 </div>
-            @endif
 
-        </div>
-
-        <!-- Section 2: Timeline Aktivitas (Audit Trail) & Tanya Jawab -->
-        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
-            
-            <!-- Left: Timeline Logs -->
-            <div class="lg:col-span-6 space-y-4">
-                <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 shadow-lg">
-                    <h3 class="font-bold text-sm text-slate-900 dark:text-white flex items-center gap-2 mb-6">
-                        <i data-lucide="history" class="w-4 h-4 text-blue-500"></i>
-                        <span>Riwayat / Audit Trail Pengaduan</span>
-                    </h3>
-
-                    <div class="space-y-6 relative before:absolute before:inset-0 before:left-3.5 before:w-0.5 before:bg-slate-200 dark:before:bg-slate-800">
-                        @foreach($complaint->logs as $log)
-                            <div class="relative flex items-start gap-4">
-                                <div class="w-7 h-7 rounded-full bg-blue-600 text-white flex items-center justify-center text-[10px] font-bold z-10 shrink-0 shadow-md">
-                                    <i data-lucide="circle-dot" class="w-3.5 h-3.5"></i>
-                                </div>
-                                <div class="flex-1 bg-slate-50 dark:bg-slate-800/50 p-3.5 rounded-2xl border border-slate-100 dark:border-slate-800 text-xs">
-                                    <div class="flex items-center justify-between mb-1">
-                                        <span class="font-bold text-slate-900 dark:text-white">{{ $log->actor_name }}</span>
-                                        <span class="text-[10px] text-slate-400">{{ $log->created_at->format('d M, H:i') }}</span>
-                                    </div>
-                                    <div class="text-slate-600 dark:text-slate-300 leading-relaxed">{{ $log->notes }}</div>
-                                </div>
-                            </div>
-                        @endforeach
+                @if($complaint->satisfaction_rating)
+                    <div class="pl-px">
+                        <p class="text-[14px] text-neutral-500 italic leading-[1.7]">
+                            "{{ $complaint->satisfaction_feedback ?? 'Tidak ada ulasan tertulis.' }}"
+                        </p>
+                        <p class="mt-2 text-[12px] text-neutral-700 font-mono">
+                            {{ $complaint->feedback_submitted_at?->format('d M Y, H.i') }} WIB
+                        </p>
                     </div>
-                </div>
-            </div>
-
-            <!-- Right: Discussion / Responses -->
-            <div class="lg:col-span-6 space-y-4">
-                <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 shadow-lg space-y-4">
-                    <h3 class="font-bold text-sm text-slate-900 dark:text-white flex items-center gap-2">
-                        <i data-lucide="message-square" class="w-4 h-4 text-blue-500"></i>
-                        <span>Pesan & Klarifikasi Tambahan</span>
-                    </h3>
-
-                    <!-- Message Feed -->
-                    <div class="space-y-3 max-h-80 overflow-y-auto pr-1">
-                        @forelse($complaint->responses->where('is_internal', false) as $res)
-                            <div class="p-3.5 rounded-2xl text-xs {{ $res->user_id === $complaint->user_id ? 'bg-blue-50 dark:bg-blue-950/40 border border-blue-200 dark:border-blue-800' : 'bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700' }}">
-                                <div class="flex items-center justify-between mb-1">
-                                    <span class="font-bold text-slate-800 dark:text-slate-200 flex items-center gap-1.5">
-                                        <span>{{ $res->sender_name }}</span>
-                                        <span class="text-[10px] font-normal text-slate-400">({{ $res->sender_role }})</span>
-                                    </span>
-                                    <span class="text-[10px] text-slate-400">{{ $res->created_at->diffForHumans() }}</span>
-                                </div>
-                                <p class="text-slate-600 dark:text-slate-300 leading-relaxed">{{ $res->message }}</p>
-                            </div>
-                        @empty
-                            <div class="text-center py-6 text-xs text-slate-400">
-                                Belum ada tanggapan atau pesan klarifikasi tambahan.
-                            </div>
-                        @endforelse
-                    </div>
-
-                    <!-- Send Message Form -->
-                    <form action="{{ route('pengaduan.response', $complaint->ticket_code) }}" method="POST" class="space-y-3 pt-3 border-t border-slate-100 dark:border-slate-800">
+                @else
+                    <form action="{{ route('pengaduan.rate', $complaint->ticket_code) }}" method="POST" class="space-y-5">
                         @csrf
-                        @if(!Auth::check())
-                            <input type="text" name="sender_name" placeholder="Nama Anda (Pelapor)" class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-900 dark:text-white focus:outline-none">
-                        @endif
-                        <textarea name="message" rows="2" required placeholder="Tuliskan pesan atau klarifikasi tambahan..." class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl p-3 text-xs text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:outline-none"></textarea>
-                        <button type="submit" class="w-full flex items-center justify-center gap-1.5 bg-blue-600 hover:bg-blue-500 text-white font-bold py-2.5 rounded-xl text-xs transition">
-                            <i data-lucide="send" class="w-3.5 h-3.5"></i>
-                            <span>Kirim Pesan</span>
+                        <div>
+                            <label class="block text-[14px] text-neutral-400 mb-3">Seberapa puas Anda dengan penanganan ini?</label>
+                            <div class="flex items-center gap-1.5">
+                                <template x-for="star in [1, 2, 3, 4, 5]" :key="star">
+                                    <button type="button"
+                                            @click="rating = star"
+                                            @mouseenter="hover = star"
+                                            @mouseleave="hover = 0"
+                                            class="w-11 h-11 rounded-xl flex items-center justify-center transition-all duration-150 border"
+                                            :class="(hover || rating) >= star
+                                                ? 'bg-white text-[#09090b] border-white shadow-sm shadow-white/10'
+                                                : 'bg-transparent text-neutral-700 border-white/[0.08] hover:border-white/20'">
+                                        <i data-lucide="star" class="w-5 h-5" :class="(hover || rating) >= star ? 'fill-current' : ''"></i>
+                                    </button>
+                                </template>
+                                <input type="hidden" name="satisfaction_rating" :value="rating">
+                                <span class="ml-3 text-[13px] font-mono font-semibold text-neutral-500"
+                                      x-show="rating > 0"
+                                      x-text="rating + '/5'"
+                                      x-transition></span>
+                            </div>
+                        </div>
+                        <div>
+                            <textarea name="satisfaction_feedback" rows="2"
+                                      placeholder="Ulasan singkat (opsional)..."
+                                      class="w-full bg-white/[0.03] border border-white/[0.08] rounded-xl px-4 py-3 text-[14px] text-white placeholder:text-neutral-700 focus:outline-none focus:ring-2 focus:ring-white/20 focus:border-transparent transition-shadow resize-none"></textarea>
+                        </div>
+                        <button type="submit"
+                                :disabled="rating === 0"
+                                class="inline-flex items-center gap-2 bg-white hover:bg-neutral-200 disabled:bg-white/[0.06] disabled:text-neutral-700 text-[#09090b] font-semibold px-6 py-3 rounded-xl text-[14px] transition-colors duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-white/30 focus-visible:ring-offset-2 focus-visible:ring-offset-[#09090b]">
+                            Kirim Penilaian
                         </button>
                     </form>
+                @endif
+            </section>
+        @endif
+
+        <!-- ─── Divider ─── -->
+        <div class="mt-14 border-t border-white/[0.06]"></div>
+
+        <!-- ─── Timeline & Messages ─── -->
+        <section class="mt-10 grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-14">
+
+            <!-- Timeline -->
+            <div>
+                <h2 class="text-[12px] font-semibold text-neutral-600 uppercase tracking-[0.08em] mb-6 flex items-center gap-2">
+                    <i data-lucide="clock" class="w-3.5 h-3.5"></i>
+                    Riwayat Aktivitas
+                </h2>
+                <div class="relative pl-6">
+                    <div class="absolute left-[7px] top-2 bottom-2 w-px bg-white/[0.06]"></div>
+
+                    <div class="space-y-5">
+                        @foreach($complaint->logs as $log)
+                            <div class="relative">
+                                <div class="absolute -left-6 top-1.5 w-[15px] h-[15px] rounded-full border-2 border-white/60 bg-[#09090b] z-10"></div>
+                                <div>
+                                    <div class="flex items-baseline justify-between gap-3 mb-1">
+                                        <span class="text-[14px] font-semibold text-white">{{ $log->actor_name }}</span>
+                                        <span class="text-[11px] font-mono text-neutral-700 whitespace-nowrap shrink-0">{{ $log->created_at->format('d M, H.i') }}</span>
+                                    </div>
+                                    <p class="text-[13px] text-neutral-500 leading-[1.65]">{{ $log->notes }}</p>
+                                </div>
+                            </div>
+                        @endforeach
+                    </div>
                 </div>
             </div>
 
-        </div>
+            <!-- Messages -->
+            <div class="flex flex-col">
+                <h2 class="text-[12px] font-semibold text-neutral-600 uppercase tracking-[0.08em] mb-6 flex items-center gap-2">
+                    <i data-lucide="message-square" class="w-3.5 h-3.5"></i>
+                    Pesan & Klarifikasi
+                </h2>
+
+                <div class="flex-1 space-y-3 max-h-[420px] overflow-y-auto pr-1 scrollbar-dark">
+                    @forelse($complaint->responses->where('is_internal', false) as $res)
+                        <div class="p-4 rounded-2xl text-[13px] leading-[1.65] {{
+                            $res->user_id === $complaint->user_id
+                                ? 'bg-white text-[#09090b]'
+                                : 'bg-white/[0.04] text-neutral-300 border border-white/[0.06]'
+                        }}">
+                            <div class="flex items-baseline justify-between gap-2 mb-1.5">
+                                <span class="font-semibold {{ $res->user_id === $complaint->user_id ? 'text-[#09090b]' : 'text-white' }}">
+                                    {{ $res->sender_name }}
+                                </span>
+                                <span class="text-[11px] {{ $res->user_id === $complaint->user_id ? 'text-neutral-500' : 'text-neutral-700' }} font-mono whitespace-nowrap">
+                                    {{ $res->created_at->diffForHumans() }}
+                                </span>
+                            </div>
+                            <p class="{{ $res->user_id === $complaint->user_id ? 'text-neutral-600' : 'text-neutral-500' }}">{{ $res->message }}</p>
+                        </div>
+                    @empty
+                        <div class="flex flex-col items-center justify-center py-12 text-center">
+                            <div class="w-12 h-12 rounded-2xl bg-white/[0.03] border border-white/[0.06] flex items-center justify-center mb-3">
+                                <i data-lucide="message-square-dashed" class="w-5 h-5 text-neutral-800"></i>
+                            </div>
+                            <p class="text-[13px] text-neutral-700">Belum ada pesan</p>
+                        </div>
+                    @endforelse
+                </div>
+
+                <form action="{{ route('pengaduan.response', $complaint->ticket_code) }}" method="POST" class="mt-4 space-y-3 pt-5 border-t border-white/[0.06]">
+                    @csrf
+                    @if(!Auth::check())
+                        <input type="text" name="sender_name" required placeholder="Nama Anda"
+                               class="w-full bg-white/[0.03] border border-white/[0.08] rounded-xl px-4 py-3 text-[14px] text-white placeholder:text-neutral-700 focus:outline-none focus:ring-2 focus:ring-white/20 focus:border-transparent transition-shadow">
+                    @endif
+                    <div class="flex gap-2">
+                        <textarea name="message" rows="1" required placeholder="Tulis pesan..."
+                                  class="flex-1 bg-white/[0.03] border border-white/[0.08] rounded-xl px-4 py-3 text-[14px] text-white placeholder:text-neutral-700 focus:outline-none focus:ring-2 focus:ring-white/20 focus:border-transparent transition-shadow resize-none"></textarea>
+                        <button type="submit"
+                                class="shrink-0 w-11 h-11 flex items-center justify-center rounded-xl bg-white hover:bg-neutral-200 text-[#09090b] transition-colors duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-white/30 focus-visible:ring-offset-2 focus-visible:ring-offset-[#09090b]">
+                            <i data-lucide="arrow-up" class="w-4 h-4"></i>
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+        </section>
+
+        <!-- ─── Bottom Spacing ─── -->
+        <div class="h-16"></div>
 
     </div>
 </div>
+
+<style>
+    [x-cloak] { display: none !important; }
+
+    @keyframes step-pulse {
+        0%, 100% { box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.12); }
+        50%      { box-shadow: 0 0 0 8px rgba(255, 255, 255, 0); }
+    }
+    .step-pulse {
+        animation: step-pulse 2.4s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+    }
+
+    .scrollbar-dark::-webkit-scrollbar { width: 4px; }
+    .scrollbar-dark::-webkit-scrollbar-track { background: transparent; }
+    .scrollbar-dark::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.06); border-radius: 999px; }
+    .scrollbar-dark::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.12); }
+</style>
 @endsection
