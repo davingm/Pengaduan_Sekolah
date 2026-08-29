@@ -31,7 +31,7 @@ class DatabaseSeeder extends Seeder
         // 1. Create Users for all roles
         $admin = User::create([
             'name' => 'Administrator Sistem',
-            'email' => 'admin@sekolah.id',
+            'email' => 'admin@mhs.id',
             'password' => Hash::make('password'),
             'role' => 'admin',
             'nisn_nip' => '198501012010011001',
@@ -40,8 +40,8 @@ class DatabaseSeeder extends Seeder
         ]);
 
         $guruPiket = User::create([
-            'name' => 'Dra. Endang Sulistyowati (Guru Piket)',
-            'email' => 'piket@sekolah.id',
+            'name' => 'Fikri Awaludin Rahmat (Guru Piket)',
+            'email' => 'fikri@mhs.id',
             'password' => Hash::make('password'),
             'role' => 'guru_piket',
             'nisn_nip' => '197605122005012003',
@@ -50,8 +50,8 @@ class DatabaseSeeder extends Seeder
         ]);
 
         $guruBk = User::create([
-            'name' => 'Bambang Irawan, S.Pd., M.Pd. (Guru BK)',
-            'email' => 'bk@sekolah.id',
+            'name' => 'Dr. Dika Pratama (Guru BK)',
+            'email' => 'dika@mhs.id',
             'password' => Hash::make('password'),
             'role' => 'petugas',
             'nisn_nip' => '198003152008011005',
@@ -60,8 +60,8 @@ class DatabaseSeeder extends Seeder
         ]);
 
         $petugasSarpras = User::create([
-            'name' => 'Joko Santoso, S.T. (Petugas Sarpras)',
-            'email' => 'sarpras@sekolah.id',
+            'name' => 'Faiz spd. (Petugas Sarpras)',
+            'email' => 'faiz@mhs.id',
             'password' => Hash::make('password'),
             'role' => 'petugas',
             'nisn_nip' => '198811202015011002',
@@ -70,8 +70,8 @@ class DatabaseSeeder extends Seeder
         ]);
 
         $waliKelas = User::create([
-            'name' => 'Siti Rahmawati, S.Pd. (Wali Kelas XI MIPA 2)',
-            'email' => 'wali@sekolah.id',
+            'name' => 'Nairha (Wali Kelas XI MIPA 2)',
+            'email' => 'naiha@mhs.id',
             'password' => Hash::make('password'),
             'role' => 'petugas',
             'nisn_nip' => '198207102009012004',
@@ -80,8 +80,8 @@ class DatabaseSeeder extends Seeder
         ]);
 
         $kepsek = User::create([
-            'name' => 'Dr. H. Mulyadi Subagyo, M.Pd.',
-            'email' => 'kepsek@sekolah.id',
+            'name' => 'Dr, Ajrin.',
+            'email' => 'ajrin@mhs.id',
             'password' => Hash::make('password'),
             'role' => 'kepala_sekolah',
             'nisn_nip' => '196802141994031002',
@@ -90,8 +90,8 @@ class DatabaseSeeder extends Seeder
         ]);
 
         $siswa = User::create([
-            'name' => 'Ahmad Fauzan Pratama',
-            'email' => 'siswa@sekolah.id',
+            'name' => 'Davin Gahisa Mustafid',
+            'email' => 'a@davingm.com',
             'password' => Hash::make('password'),
             'role' => 'siswa',
             'nisn_nip' => '0068945123',
@@ -100,8 +100,8 @@ class DatabaseSeeder extends Seeder
         ]);
 
         $siswa2 = User::create([
-            'name' => 'Rania Putri Az-Zahra',
-            'email' => 'siswa2@sekolah.id',
+            'name' => 'Kina Saqina',
+            'email' => 'kina@mhs.id',
             'password' => Hash::make('password'),
             'role' => 'siswa',
             'nisn_nip' => '0071234567',
