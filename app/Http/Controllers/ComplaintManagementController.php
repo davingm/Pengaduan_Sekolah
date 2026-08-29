@@ -69,7 +69,19 @@ class ComplaintManagementController extends Controller
             'ditolak' => $user->isSiswa() ? Complaint::where('user_id', $user->id)->where('status', 'ditolak')->count() : Complaint::where('status', 'ditolak')->count(),
         ];
 
-        return view('pages.dashboard.pengaduan.index', compact('complaints', 'categories', 'statusCounts'));
+        $currentStatus = $request->get('status', 'all');
+
+        $tabs = [
+            'all' => ['label' => 'Semua', 'count' => $statusCounts['all']],
+            'menunggu_verifikasi' => ['label' => 'Menunggu Verifikasi', 'count' => $statusCounts['menunggu_verifikasi']],
+            'didisposisikan' => ['label' => 'Didisposisikan', 'count' => $statusCounts['didisposisikan']],
+            'diproses' => ['label' => 'Sedang Ditangani', 'count' => $statusCounts['diproses']],
+            'menunggu_persetujuan' => ['label' => 'Menunggu Persetujuan', 'count' => $statusCounts['menunggu_persetujuan']],
+            'selesai' => ['label' => 'Selesai', 'count' => $statusCounts['selesai']],
+            'ditolak' => ['label' => 'Ditolak', 'count' => $statusCounts['ditolak']],
+        ];
+
+        return view('pages.dashboard.pengaduan.index', compact('complaints', 'categories', 'statusCounts', 'tabs', 'currentStatus'));
     }
 
     public function show(string $ticket_code)
@@ -273,7 +285,7 @@ class ComplaintManagementController extends Controller
         $complaint = Complaint::where('ticket_code', $ticket_code)->firstOrFail();
         $user = Auth::user();
 
-        if (!$user->isKepalaSekala() && !$user->isKepalaSekolah() && !$user->isAdmin()) {
+        if (!$user->isKepalaSekolah() && !$user->isAdmin()) {
             return back()->with('error', 'Hanya Kepala Sekolah atau Administrator yang dapat menyetujui penutupan pengaduan.');
         }
 

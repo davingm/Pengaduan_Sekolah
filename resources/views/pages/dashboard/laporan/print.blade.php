@@ -6,11 +6,11 @@
     <title>Rekapitulasi Pengaduan Sekolah ({{ $startDate }} s.d {{ $endDate }})</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
     <style>
         body {
             font-family: 'Geist', ui-sans-serif, system-ui, sans-serif;
-            color: #1e293b;
+            color: #09090b;
             background: #fff;
             margin: 0;
             padding: 24px;
@@ -18,30 +18,33 @@
         }
         .header {
             text-align: center;
-            border-bottom: 2px solid #000;
+            border-bottom: 2px solid #09090b;
             padding-bottom: 12px;
             margin-bottom: 20px;
         }
         .header h1 {
-            font-size: 16px;
+            font-size: 15px;
             margin: 0 0 4px 0;
             text-transform: uppercase;
+            font-weight: 700;
+            letter-spacing: -0.02em;
         }
         .header h2 {
-            font-size: 14px;
+            font-size: 13px;
             margin: 0 0 4px 0;
+            font-weight: 600;
         }
         .header p {
             margin: 0;
             font-size: 11px;
-            color: #475569;
+            color: #52525b;
         }
         .meta-table {
             width: 100%;
             margin-bottom: 16px;
         }
         .meta-table td {
-            padding: 4px 0;
+            padding: 3px 0;
         }
         table.data-table {
             width: 100%;
@@ -49,13 +52,16 @@
             margin-top: 10px;
         }
         table.data-table th, table.data-table td {
-            border: 1px solid #cbd5e1;
+            border: 1px solid #e4e4e7;
             padding: 6px 8px;
             text-align: left;
         }
         table.data-table th {
-            background-color: #f1f5f9;
-            font-weight: bold;
+            background-color: #f4f4f5;
+            font-weight: 600;
+            font-family: 'Geist Mono', monospace;
+            font-size: 11px;
+            text-transform: uppercase;
         }
         .signatures {
             margin-top: 40px;
@@ -67,7 +73,7 @@
             vertical-align: top;
         }
         .signature-space {
-            height: 60px;
+            height: 55px;
         }
         @media print {
             body { padding: 0; }
@@ -78,7 +84,7 @@
 <body>
 
     <div class="no-print" style="margin-bottom: 16px; text-align: right;">
-        <button onclick="window.print()" style="background: #2563eb; color: #fff; border: none; padding: 8px 16px; border-radius: 8px; font-weight: bold; cursor: pointer;">
+        <button onclick="window.print()" style="background: #f6821f; color: #fff; border: none; padding: 7px 14px; border-radius: 6px; font-weight: 600; font-size: 12px; cursor: pointer; box-shadow: 0 1px 2px rgba(0,0,0,0.05);">
             🖨️ Cetak / Simpan PDF
         </button>
     </div>
@@ -90,8 +96,8 @@
         <p>Jl. Pendidikan No. 45, Kompleks Edukasi &bull; Telp: (021) 555-0199 &bull; Email: pengaduan@sekolah.sch.id</p>
     </div>
 
-    <div style="text-align: center; font-weight: bold; font-size: 14px; margin-bottom: 16px; text-decoration: underline;">
-        REKAPITULASI LAPORAN & TINDAK LANJUT PENGADUAN
+    <div style="text-align: center; font-weight: 700; font-size: 13px; margin-bottom: 16px; text-transform: uppercase; letter-spacing: -0.01em;">
+        Rekapitulasi Laporan & Tindak Lanjut Pengaduan
     </div>
 
     <table class="meta-table">
@@ -103,7 +109,7 @@
         </tr>
         <tr>
             <td><strong>Status Filter</strong></td>
-            <td>: {{ ucfirst($status) }}</td>
+            <td>: {{ ucfirst(str_replace('_', ' ', $status)) }}</td>
             <td><strong>Dicetak Pada</strong></td>
             <td>: {{ date('d F Y, H:i') }} WIB</td>
         </tr>
@@ -125,15 +131,15 @@
             @forelse($complaints as $index => $c)
                 <tr>
                     <td style="text-align: center;">{{ $index + 1 }}</td>
-                    <td style="font-family: monospace; font-weight: bold;">{{ $c->ticket_code }}</td>
+                    <td style="font-family: 'Geist Mono', monospace; font-weight: 600;">{{ $c->ticket_code }}</td>
                     <td>{{ $c->created_at->format('d/m/Y') }}</td>
                     <td>{{ $c->is_anonymous ? 'Anonim' : $c->reporter_name }}</td>
                     <td>{{ $c->category->name }}</td>
                     <td>
                         <strong>{{ $c->title }}</strong><br>
-                        <small style="color: #475569;">{{ Str::limit($c->description, 100) }}</small>
+                        <small style="color: #52525b;">{{ Str::limit($c->description, 100) }}</small>
                         @if($c->resolution_notes)
-                            <div style="margin-top: 4px; padding-top: 4px; border-top: 1px dashed #cbd5e1; font-size: 10px; color: #166534;">
+                            <div style="margin-top: 4px; padding-top: 4px; border-top: 1px dashed #d4d4d8; font-size: 10px; color: #15803d;">
                                 <strong>Tindak Lanjut:</strong> {{ Str::limit($c->resolution_notes, 80) }}
                             </div>
                         @endif

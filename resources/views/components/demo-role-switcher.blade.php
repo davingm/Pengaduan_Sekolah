@@ -2,130 +2,133 @@
     $currentRole = Auth::check() ? Auth::user()->role : 'guest';
 @endphp
 
-<div x-data="{ open: false, minimized: false }" class="fixed bottom-4 right-4 z-50">
+<div x-data="{ open: false }" class="fixed bottom-5 right-5 z-50">
     <!-- Toggle Button -->
-    <div x-show="!open" class="flex items-center gap-2 bg-slate-900/90 text-white backdrop-blur-md px-3.5 py-2 rounded-full shadow-2xl border border-slate-700/50 hover:bg-slate-800 transition cursor-pointer" @click="open = true">
-        <span class="flex h-2.5 w-2.5 relative">
-            <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-            <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
+    <div x-show="!open" 
+         @click="open = true"
+         class="flex items-center gap-2.5 bg-zinc-950/90 text-zinc-300 backdrop-blur-md px-3.5 py-2 rounded-lg shadow-2xl border border-zinc-800 hover:border-zinc-700 hover:text-white transition-all cursor-pointer">
+        <span class="flex h-2 w-2 relative">
+            <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-orange-400 opacity-75"></span>
+            <span class="relative inline-flex rounded-full h-2 w-2 bg-orange-500"></span>
         </span>
-        <div class="flex items-center gap-1.5 text-xs font-medium">
-            <span></span>
-            <span class="font-bold text-emerald-400">DevTools</span>
+        <div class="flex items-center gap-1.5 text-xs font-mono">
+            <span class="text-zinc-500">role:</span>
+            <span class="font-semibold text-orange-400">{{ $currentRole }}</span>
         </div>
-        <i data-lucide="chevron-up" class="w-3.5 h-3.5 text-slate-400"></i>
+        <i data-lucide="chevron-up" class="w-3.5 h-3.5 text-zinc-500"></i>
     </div>
 
     <!-- Expanded Switcher Modal/Card -->
     <div x-show="open" 
          x-transition:enter="transition ease-out duration-200"
-         x-transition:enter-start="opacity-0 translate-y-4 scale-95"
+         x-transition:enter-start="opacity-0 translate-y-3 scale-95"
          x-transition:enter-end="opacity-100 translate-y-0 scale-100"
          x-transition:leave="transition ease-in duration-150"
          x-transition:leave-start="opacity-100 translate-y-0 scale-100"
-         x-transition:leave-end="opacity-0 translate-y-4 scale-95"
-         class="bg-slate-900/95 text-white backdrop-blur-xl border border-slate-700/80 rounded-2xl p-4 shadow-2xl w-80 max-w-[calc(100vw-2rem)]"
+         x-transition:leave-end="opacity-0 translate-y-3 scale-95"
+         class="bg-zinc-950/95 text-zinc-100 backdrop-blur-xl border border-zinc-800 rounded-xl p-4 shadow-2xl w-80 max-w-[calc(100vw-2rem)]"
+         @click.outside="open = false"
          x-cloak>
         
-        <div class="flex items-center justify-between pb-3 border-b border-slate-800 mb-3">
+        <div class="flex items-center justify-between pb-3 border-b border-zinc-800 mb-3">
             <div class="flex items-center gap-2">
-                <div class="w-7 h-7 rounded-lg bg-indigo-600/30 border border-indigo-500/40 flex items-center justify-center text-indigo-400">
-                    <i data-lucide="users" class="w-4 h-4"></i>
+                <div class="w-6 h-6 rounded-md bg-orange-500/10 border border-orange-500/20 flex items-center justify-center text-orange-400">
+                    <i data-lucide="shield" class="w-3.5 h-3.5"></i>
                 </div>
                 <div>
-                    <h4 class="text-xs font-bold text-slate-100">Quick Role Switcher</h4>
-                    <p class="text-[10px] text-slate-400">Uji coba 1-klik seluruh alur sistem</p>
+                    <h4 class="text-xs font-semibold text-zinc-100">Role Switcher</h4>
+                    <p class="text-[10px] text-zinc-500 font-mono">Quick auth switch for demo</p>
                 </div>
             </div>
-            <button @click="open = false" class="text-slate-400 hover:text-white p-1 rounded-lg hover:bg-slate-800 transition">
-                <i data-lucide="x" class="w-4 h-4"></i>
+            <button @click="open = false" class="text-zinc-500 hover:text-zinc-300 p-1 rounded-md transition">
+                <i data-lucide="x" class="w-3.5 h-3.5"></i>
             </button>
         </div>
 
         <div class="space-y-1.5 max-h-72 overflow-y-auto pr-1">
             <!-- Siswa -->
-            <a href="{{ route('demo.switch', 'siswa') }}" class="flex items-center justify-between p-2 rounded-xl text-xs transition {{ $currentRole === 'siswa' ? 'bg-emerald-600/20 border border-emerald-500/40 text-emerald-300' : 'bg-slate-800/60 hover:bg-slate-800 border border-transparent text-slate-200' }}">
-                <div class="flex items-center gap-2">
-                    <span class="w-6 h-6 rounded-lg bg-emerald-500/20 flex items-center justify-center text-emerald-400 font-bold text-[10px]">SW</span>
+            <a href="{{ route('demo.switch', 'siswa') }}" class="flex items-center justify-between p-2 rounded-lg text-xs transition border {{ $currentRole === 'siswa' ? 'bg-zinc-900 border-orange-500/40 text-zinc-100' : 'border-transparent hover:bg-zinc-900/60 text-zinc-400 hover:text-zinc-200' }}">
+                <div class="flex items-center gap-2.5">
+                    <span class="w-6 h-6 rounded-md bg-zinc-800 border border-zinc-700 flex items-center justify-center text-zinc-300 font-mono text-[10px]">SW</span>
                     <div>
-                        <div class="font-semibold">Siswa / Pelapor</div>
-                        <div class="text-[10px] text-slate-400">Ahmad Fauzan (XI MIPA 2)</div>
+                        <div class="font-medium text-zinc-200">Siswa / Pelapor</div>
+                        <div class="text-[10px] text-zinc-500">Ahmad Fauzan (XI MIPA 2)</div>
                     </div>
                 </div>
                 @if($currentRole === 'siswa')
-                    <span class="text-[10px] bg-emerald-500 text-slate-950 font-bold px-1.5 py-0.5 rounded">Aktif</span>
+                    <span class="text-[9px] bg-orange-500/20 text-orange-400 font-mono font-medium px-1.5 py-0.5 rounded border border-orange-500/30">Active</span>
                 @endif
             </a>
 
             <!-- Guru Piket -->
-            <a href="{{ route('demo.switch', 'guru_piket') }}" class="flex items-center justify-between p-2 rounded-xl text-xs transition {{ $currentRole === 'guru_piket' ? 'bg-amber-600/20 border border-amber-500/40 text-amber-300' : 'bg-slate-800/60 hover:bg-slate-800 border border-transparent text-slate-200' }}">
-                <div class="flex items-center gap-2">
-                    <span class="w-6 h-6 rounded-lg bg-amber-500/20 flex items-center justify-center text-amber-400 font-bold text-[10px]">PK</span>
+            <a href="{{ route('demo.switch', 'guru_piket') }}" class="flex items-center justify-between p-2 rounded-lg text-xs transition border {{ $currentRole === 'guru_piket' ? 'bg-zinc-900 border-orange-500/40 text-zinc-100' : 'border-transparent hover:bg-zinc-900/60 text-zinc-400 hover:text-zinc-200' }}">
+                <div class="flex items-center gap-2.5">
+                    <span class="w-6 h-6 rounded-md bg-zinc-800 border border-zinc-700 flex items-center justify-center text-zinc-300 font-mono text-[10px]">GP</span>
                     <div>
-                        <div class="font-semibold">Guru Piket (Verifikator)</div>
-                        <div class="text-[10px] text-slate-400">Dra. Endang Sulistyowati</div>
+                        <div class="font-medium text-zinc-200">Guru Piket (Verifikator)</div>
+                        <div class="text-[10px] text-zinc-500">Dra. Endang Sulistyowati</div>
                     </div>
                 </div>
                 @if($currentRole === 'guru_piket')
-                    <span class="text-[10px] bg-amber-500 text-slate-950 font-bold px-1.5 py-0.5 rounded">Aktif</span>
+                    <span class="text-[9px] bg-orange-500/20 text-orange-400 font-mono font-medium px-1.5 py-0.5 rounded border border-orange-500/30">Active</span>
                 @endif
             </a>
 
             <!-- Petugas Sarpras -->
-            <a href="{{ route('demo.switch', 'petugas') }}" class="flex items-center justify-between p-2 rounded-xl text-xs transition {{ $currentRole === 'petugas' ? 'bg-blue-600/20 border border-blue-500/40 text-blue-300' : 'bg-slate-800/60 hover:bg-slate-800 border border-transparent text-slate-200' }}">
-                <div class="flex items-center gap-2">
-                    <span class="w-6 h-6 rounded-lg bg-blue-500/20 flex items-center justify-center text-blue-400 font-bold text-[10px]">PT</span>
+            <a href="{{ route('demo.switch', 'petugas') }}" class="flex items-center justify-between p-2 rounded-lg text-xs transition border {{ $currentRole === 'petugas' ? 'bg-zinc-900 border-orange-500/40 text-zinc-100' : 'border-transparent hover:bg-zinc-900/60 text-zinc-400 hover:text-zinc-200' }}">
+                <div class="flex items-center gap-2.5">
+                    <span class="w-6 h-6 rounded-md bg-zinc-800 border border-zinc-700 flex items-center justify-center text-zinc-300 font-mono text-[10px]">PT</span>
                     <div>
-                        <div class="font-semibold">Petugas Sarpras / Penanganan</div>
-                        <div class="text-[10px] text-slate-400">Joko Santoso, S.T.</div>
+                        <div class="font-medium text-zinc-200">Petugas Sarpras (Teknisi)</div>
+                        <div class="text-[10px] text-zinc-500">Joko Santoso, S.T.</div>
                     </div>
                 </div>
                 @if($currentRole === 'petugas')
-                    <span class="text-[10px] bg-blue-500 text-slate-950 font-bold px-1.5 py-0.5 rounded">Aktif</span>
+                    <span class="text-[9px] bg-orange-500/20 text-orange-400 font-mono font-medium px-1.5 py-0.5 rounded border border-orange-500/30">Active</span>
                 @endif
             </a>
 
             <!-- Kepala Sekolah -->
-            <a href="{{ route('demo.switch', 'kepala_sekolah') }}" class="flex items-center justify-between p-2 rounded-xl text-xs transition {{ $currentRole === 'kepala_sekolah' ? 'bg-purple-600/20 border border-purple-500/40 text-purple-300' : 'bg-slate-800/60 hover:bg-slate-800 border border-transparent text-slate-200' }}">
-                <div class="flex items-center gap-2">
-                    <span class="w-6 h-6 rounded-lg bg-purple-500/20 flex items-center justify-center text-purple-400 font-bold text-[10px]">KS</span>
+            <a href="{{ route('demo.switch', 'kepala_sekolah') }}" class="flex items-center justify-between p-2 rounded-lg text-xs transition border {{ $currentRole === 'kepala_sekolah' ? 'bg-zinc-900 border-orange-500/40 text-zinc-100' : 'border-transparent hover:bg-zinc-900/60 text-zinc-400 hover:text-zinc-200' }}">
+                <div class="flex items-center gap-2.5">
+                    <span class="w-6 h-6 rounded-md bg-zinc-800 border border-zinc-700 flex items-center justify-center text-zinc-300 font-mono text-[10px]">KS</span>
                     <div>
-                        <div class="font-semibold">Kepala Sekolah (Approver)</div>
-                        <div class="text-[10px] text-slate-400">Dr. H. Mulyadi Subagyo</div>
+                        <div class="font-medium text-zinc-200">Kepala Sekolah (Approver)</div>
+                        <div class="text-[10px] text-zinc-500">Dr. H. Mulyadi Subagyo</div>
                     </div>
                 </div>
                 @if($currentRole === 'kepala_sekolah')
-                    <span class="text-[10px] bg-purple-500 text-slate-950 font-bold px-1.5 py-0.5 rounded">Aktif</span>
+                    <span class="text-[9px] bg-orange-500/20 text-orange-400 font-mono font-medium px-1.5 py-0.5 rounded border border-orange-500/30">Active</span>
                 @endif
             </a>
 
             <!-- Admin -->
-            <a href="{{ route('demo.switch', 'admin') }}" class="flex items-center justify-between p-2 rounded-xl text-xs transition {{ $currentRole === 'admin' ? 'bg-rose-600/20 border border-rose-500/40 text-rose-300' : 'bg-slate-800/60 hover:bg-slate-800 border border-transparent text-slate-200' }}">
-                <div class="flex items-center gap-2">
-                    <span class="w-6 h-6 rounded-lg bg-rose-500/20 flex items-center justify-center text-rose-400 font-bold text-[10px]">AD</span>
+            <a href="{{ route('demo.switch', 'admin') }}" class="flex items-center justify-between p-2 rounded-lg text-xs transition border {{ $currentRole === 'admin' ? 'bg-zinc-900 border-orange-500/40 text-zinc-100' : 'border-transparent hover:bg-zinc-900/60 text-zinc-400 hover:text-zinc-200' }}">
+                <div class="flex items-center gap-2.5">
+                    <span class="w-6 h-6 rounded-md bg-zinc-800 border border-zinc-700 flex items-center justify-center text-zinc-300 font-mono text-[10px]">AD</span>
                     <div>
-                        <div class="font-semibold">Administrator</div>
-                        <div class="text-[10px] text-slate-400">IT & Master Control</div>
+                        <div class="font-medium text-zinc-200">Administrator</div>
+                        <div class="text-[10px] text-zinc-500">IT & Master Control</div>
                     </div>
                 </div>
                 @if($currentRole === 'admin')
-                    <span class="text-[10px] bg-rose-500 text-slate-950 font-bold px-1.5 py-0.5 rounded">Aktif</span>
+                    <span class="text-[9px] bg-orange-500/20 text-orange-400 font-mono font-medium px-1.5 py-0.5 rounded border border-orange-500/30">Active</span>
                 @endif
             </a>
         </div>
 
-        <div class="mt-3 pt-2.5 border-t border-slate-800/80 flex items-center justify-between text-[11px]">
+        <div class="mt-3 pt-2.5 border-t border-zinc-800/80 flex items-center justify-between text-[11px] font-mono">
             @if(Auth::check())
                 <form action="{{ route('logout') }}" method="POST" class="inline">
                     @csrf
-                    <button type="submit" class="text-rose-400 hover:text-rose-300 font-medium flex items-center gap-1">
+                    <button type="submit" class="text-zinc-400 hover:text-red-400 transition flex items-center gap-1">
                         <i data-lucide="log-out" class="w-3 h-3"></i> Keluar
                     </button>
                 </form>
             @else
-                <a href="{{ route('login') }}" class="text-indigo-400 hover:text-indigo-300 font-medium">Halaman Login &rarr;</a>
+                <a href="{{ route('login') }}" class="text-orange-400 hover:underline">Login &rarr;</a>
             @endif
-            <a href="{{ route('home') }}" class="text-slate-400 hover:text-slate-200">Ke Beranda</a>
+            <a href="{{ route('home') }}" class="text-zinc-500 hover:text-zinc-300">Portal Publik &rarr;</a>
         </div>
     </div>
 </div>
