@@ -53,7 +53,11 @@ class PublicComplaintController extends Controller
         ];
 
         if (!Auth::check()) {
-            $rules['reporter_name'] = ['required', 'string', 'max:255'];
+            // reporter_name wajib hanya jika tidak anonim
+            $isAnonymousReq = $request->boolean('is_anonymous');
+            $rules['reporter_name'] = $isAnonymousReq
+                ? ['nullable', 'string', 'max:255']
+                : ['required', 'string', 'max:255'];
             $rules['reporter_nisn'] = ['nullable', 'string', 'max:50'];
             $rules['reporter_phone'] = ['nullable', 'string', 'max:20'];
             $rules['reporter_email'] = ['nullable', 'email', 'max:255'];
@@ -82,7 +86,9 @@ class PublicComplaintController extends Controller
         $complaint = Complaint::create([
             'ticket_code' => $ticketCode,
             'user_id' => $user?->id,
-            'reporter_name' => $user ? $user->name : $validated['reporter_name'],
+            'reporter_name' => $user
+                ? $user->name
+                : ($isAnonymous ? 'Anonim' : ($validated['reporter_name'] ?? 'Anonim')),
             'reporter_nisn' => $user ? $user->nisn_nip : ($validated['reporter_nisn'] ?? null),
             'reporter_phone' => $user ? $user->phone : ($validated['reporter_phone'] ?? null),
             'reporter_email' => $user ? $user->email : ($validated['reporter_email'] ?? null),
@@ -119,7 +125,7 @@ class PublicComplaintController extends Controller
         ComplaintLog::create([
             'complaint_id' => $complaint->id,
             'user_id' => $user?->id,
-            'actor_name' => $isAnonymous ? 'Siswa / Pelapor (Anonim)' : ($user ? $user->name : $validated['reporter_name']),
+            'actor_name' => $isAnonymous ? 'Siswa / Pelapor (Anonim)' : ($user ? $user->name : ($validated['reporter_name'] ?? 'Pelapor')),
             'actor_role' => $user ? $user->role_label : 'Pelapor Tamu',
             'action' => 'dibuat',
             'status_from' => null,

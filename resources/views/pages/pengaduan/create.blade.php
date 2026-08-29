@@ -194,7 +194,6 @@
                                     <div class="font-bold mb-0.5 text-white">Laporan dikirim secara anonim</div>
                                     Nama dan kontak Anda tidak dicatat maupun ditampilkan ke publik. Status laporan tetap bisa dipantau memakai <strong class="text-white">kode tiket</strong> yang diterbitkan setelah formulir dikirim.
                                 </div>
-                                <input type="hidden" name="reporter_name" value="Siswa Anonim">
                             </div>
                         @endif
 
