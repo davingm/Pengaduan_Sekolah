@@ -79,21 +79,4 @@ class AuthController extends Controller
 
         return redirect()->route('home')->with('success', 'Anda telah berhasil keluar sistem.');
     }
-
-    /**
-     * Quick Demo Role Switcher helper
-     */
-    public function switchRole(string $role)
-    {
-        $user = User::where('role', $role)->first();
-        if (!$user) {
-            return back()->with('error', 'Akun demo untuk role ' . $role . ' tidak ditemukan.');
-        }
-
-        Auth::login($user);
-        request()->session()->regenerate();
-
-        return redirect()->route('dashboard.index')
-            ->with('success', 'Berhasil beralih mode sebagai: ' . $user->role_label . ' (' . $user->name . ')');
-    }
 }

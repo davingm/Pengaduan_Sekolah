@@ -14,7 +14,7 @@
                 Masuk ke Akun Anda
             </h1>
             <p class="text-xs text-slate-500">
-                Pilih opsi login atau gunakan tombol demo 1-klik di bawah
+                Masukkan alamat email dan kata sandi untuk mengakses akun Anda
             </p>
         </div>
 
@@ -45,29 +45,7 @@
                 </button>
             </form>
 
-            <!-- Quick Demo 1-Click Buttons -->
-            <div class="pt-6 border-t border-slate-100 dark:border-slate-800 space-y-3">
-                <div class="text-[11px] font-bold text-slate-500 uppercase tracking-wider text-center">
-                    ⚡ Akses Cepat Demo (1-Klik Tanpa Password)
-                </div>
-
-                <div class="grid grid-cols-2 gap-2 text-xs">
-                    <a href="{{ route('demo.switch', 'siswa') }}" class="p-2 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800/60 hover:bg-emerald-100 text-emerald-700 dark:text-emerald-300 font-semibold text-center transition">
-                        Siswa / Pelapor
-                    </a>
-                    <a href="{{ route('demo.switch', 'guru_piket') }}" class="p-2 rounded-xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800/60 hover:bg-amber-100 text-amber-700 dark:text-amber-300 font-semibold text-center transition">
-                        Guru Piket (Verifikator)
-                    </a>
-                    <a href="{{ route('demo.switch', 'petugas') }}" class="p-2 rounded-xl bg-blue-50 dark:bg-blue-950/40 border border-blue-200 dark:border-blue-800/60 hover:bg-blue-100 text-blue-700 dark:text-blue-300 font-semibold text-center transition">
-                        Petugas Sarpras
-                    </a>
-                    <a href="{{ route('demo.switch', 'kepala_sekolah') }}" class="p-2 rounded-xl bg-purple-50 dark:bg-purple-950/40 border border-purple-200 dark:border-purple-800/60 hover:bg-purple-100 text-purple-700 dark:text-purple-300 font-semibold text-center transition">
-                        Kepala Sekolah
-                    </a>
-                </div>
-            </div>
-
-            <div class="text-center text-xs text-slate-500">
+            <div class="text-center text-xs text-slate-500 pt-4 border-t border-slate-100 dark:border-slate-800">
                 Belum memiliki akun siswa? 
                 <a href="{{ route('register') }}" class="text-blue-600 font-bold hover:underline">Daftar di sini</a>
             </div>

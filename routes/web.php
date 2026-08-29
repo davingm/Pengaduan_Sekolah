@@ -15,7 +15,7 @@ use Illuminate\Support\Facades\Route;
 */
 Route::get('/', [PublicComplaintController::class, 'index'])->name('home');
 Route::get('/pengaduan/buat', [PublicComplaintController::class, 'create'])->name('pengaduan.create');
-Route::post('/pengaduan', [PublicComplaintController::class, 'store'])->name('pengaduan.store');
+Route::post('/pengaduan', [PublicComplaintController::class, 'store'])->middleware('throttle:15,1')->name('pengaduan.store');
 Route::get('/pengaduan/lacak', [PublicComplaintController::class, 'track'])->name('pengaduan.track');
 Route::get('/pengaduan/{ticket_code}', [PublicComplaintController::class, 'show'])->name('pengaduan.show');
 Route::post('/pengaduan/{ticket_code}/rate', [PublicComplaintController::class, 'rate'])->name('pengaduan.rate');
@@ -23,17 +23,14 @@ Route::post('/pengaduan/{ticket_code}/response', [PublicComplaintController::cla
 
 /*
 |--------------------------------------------------------------------------
-| Authentication Routes & Demo Quick Switcher
+| Authentication Routes
 |--------------------------------------------------------------------------
 */
 Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
-Route::post('/login', [AuthController::class, 'login']);
+Route::post('/login', [AuthController::class, 'login'])->middleware('throttle:5,1');
 Route::get('/register', [AuthController::class, 'showRegister'])->name('register');
-Route::post('/register', [AuthController::class, 'register']);
+Route::post('/register', [AuthController::class, 'register'])->middleware('throttle:5,1');
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
-
-// Quick Demo Switcher (Instant 1-Click login as Siswa/Guru Piket/Petugas/Kepsek/Admin)
-Route::get('/demo-switch/{role}', [AuthController::class, 'switchRole'])->name('demo.switch');
 
 /*
 |--------------------------------------------------------------------------

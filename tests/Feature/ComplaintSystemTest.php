@@ -98,11 +98,35 @@ class ComplaintSystemTest extends TestCase
         $this->assertNotNull($complaint->resolved_at);
     }
 
-    public function test_demo_role_switcher(): void
+    public function test_standard_login_with_credentials(): void
+    {
+        $user = User::where('role', 'guru_piket')->first();
+
+        $response = $this->post('/login', [
+            'email' => $user->email,
+            'password' => 'password',
+        ]);
+
+        $response->assertRedirect('/dashboard');
+        $this->assertAuthenticatedAs($user);
+    }
+
+    public function test_demo_switcher_route_is_removed(): void
     {
         $response = $this->get('/demo-switch/guru_piket');
-        $response->assertRedirect('/dashboard');
-        $this->assertEquals('guru_piket', auth()->user()->role);
+        $response->assertStatus(404);
+    }
+
+    public function test_siswa_cannot_access_category_or_reports(): void
+    {
+        $siswa = User::where('role', 'siswa')->first();
+
+        // Should return 403 Forbidden
+        $responseCat = $this->actingAs($siswa)->get('/dashboard/kategori');
+        $responseCat->assertStatus(403);
+
+        $responseLap = $this->actingAs($siswa)->get('/dashboard/laporan');
+        $responseLap->assertStatus(403);
     }
 
     public function test_dashboard_index_accessible_by_all_roles(): void

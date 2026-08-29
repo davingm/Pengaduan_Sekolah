@@ -10,6 +10,10 @@ class ReportController extends Controller
 {
     public function index(Request $request)
     {
+        if (auth()->user()->isSiswa()) {
+            abort(403, 'Laporan & rekapitulasi hanya dapat diakses oleh Guru, Petugas, dan Kepala Sekolah.');
+        }
+
         $startDate = $request->input('start_date', now()->startOfMonth()->toDateString());
         $endDate = $request->input('end_date', now()->toDateString());
         $status = $request->input('status', 'all');
@@ -44,6 +48,9 @@ class ReportController extends Controller
 
     public function print(Request $request)
     {
+        if (auth()->user()->isSiswa()) {
+            abort(403, 'Akses ditolak.');
+        }
         $startDate = $request->input('start_date', now()->startOfMonth()->toDateString());
         $endDate = $request->input('end_date', now()->toDateString());
         $status = $request->input('status', 'all');

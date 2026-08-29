@@ -193,8 +193,5 @@
         </div>
     </div>
 
-    <!-- Floating 1-Click Demo Role Switcher -->
-    <x-demo-role-switcher />
-
 </body>
 </html>

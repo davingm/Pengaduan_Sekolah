@@ -10,12 +10,19 @@ class CategoryController extends Controller
 {
     public function index()
     {
+        if (auth()->user()->isSiswa()) {
+            abort(403, 'Akses terbatas untuk staf dan administrator.');
+        }
+
         $categories = Category::withCount('complaints')->latest()->get();
         return view('pages.dashboard.kategori.index', compact('categories'));
     }
 
     public function store(Request $request)
     {
+        if (auth()->user()->isSiswa()) {
+            abort(403, 'Akses ditolak.');
+        }
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255', 'unique:categories,name'],
             'icon' => ['nullable', 'string', 'max:50'],
@@ -39,6 +46,10 @@ class CategoryController extends Controller
 
     public function update(Request $request, Category $category)
     {
+        if (auth()->user()->isSiswa()) {
+            abort(403, 'Akses ditolak.');
+        }
+
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255', 'unique:categories,name,' . $category->id],
             'icon' => ['nullable', 'string', 'max:50'],
@@ -63,6 +74,10 @@ class CategoryController extends Controller
 
     public function destroy(Category $category)
     {
+        if (auth()->user()->isSiswa()) {
+            abort(403, 'Akses ditolak.');
+        }
+
         if ($category->complaints()->count() > 0) {
             return back()->with('error', 'Kategori tidak dapat dihapus karena sudah memiliki data pengaduan terkait.');
         }

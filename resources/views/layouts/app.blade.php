@@ -24,8 +24,6 @@
     <!-- Footer -->
     <x-footer />
 
-    <!-- Floating 1-Click Demo Role Switcher -->
-    <x-demo-role-switcher />
-
+    @stack('scripts')
 </body>
 </html>
