@@ -10,6 +10,7 @@ use App\Models\ComplaintResponse;
 use App\Models\User;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Schema;
 
 class DatabaseSeeder extends Seeder
 {
@@ -18,6 +19,15 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
+        Schema::disableForeignKeyConstraints();
+        ComplaintResponse::truncate();
+        ComplaintLog::truncate();
+        ComplaintAttachment::truncate();
+        Complaint::truncate();
+        Category::truncate();
+        User::truncate();
+        Schema::enableForeignKeyConstraints();
+
         // 1. Create Users for all roles
         $admin = User::create([
             'name' => 'Administrator Sistem',
